@@ -99,7 +99,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     child: Container(
                       padding: const EdgeInsets.symmetric(vertical: 12),
                       child: const Text(
-                        "Sign up.",
+                        "Sign up",
                         style: TextStyle(fontWeight: FontWeight.bold),
                       ),
                     ),

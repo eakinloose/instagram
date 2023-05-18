@@ -1,8 +1,13 @@
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
+
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:image_picker/image_picker.dart';
 
 import 'package:instagram/utils/colors.dart';
 import 'package:instagram/utils/dimensions.dart';
+import 'package:instagram/utils/utils.dart';
+import 'package:instagram/resources/auth_methods.dart';
 import 'package:instagram/widgets/text_field_input.dart';
 import 'package:instagram/screens/login_screen.dart';
 
@@ -21,6 +26,9 @@ class _SignupScreenState extends State<SignupScreen> {
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _bioController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  Uint8List? _profileImage;
+
+  bool _isLoading = false;
 
   //dispose controllers
   @override
@@ -30,6 +38,55 @@ class _SignupScreenState extends State<SignupScreen> {
     _usernameController.dispose();
     _bioController.dispose();
     _passwordController.dispose();
+  }
+
+  void selectImage() async {
+    Uint8List pickedImage = await pickImage(ImageSource.gallery);
+
+    setState(() {
+      _profileImage = pickedImage;
+    });
+  }
+
+  void _resetForm() {
+    _emailController.clear();
+    _usernameController.clear();
+    _passwordController.clear();
+    _bioController.clear();
+  }
+
+  void _signupUser() async {
+    String? response;
+
+    if (_emailController.text.isEmpty ||
+        _usernameController.text.isEmpty ||
+        _passwordController.text.isEmpty ||
+        _bioController.text.isEmpty) {
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    response = await Authmethods().signupUser(
+      email: _emailController.text,
+      username: _usernameController.text,
+      password: _passwordController.text,
+      bio: _bioController.text,
+      file: _profileImage!,
+    );
+
+    setState(() {
+      _isLoading = false;
+    });
+
+    if (response != "success") {
+      showSnackBar(response, context);
+    }
+
+    print(response);
+    _resetForm();
   }
 
   @override
@@ -55,16 +112,21 @@ class _SignupScreenState extends State<SignupScreen> {
               //Widget to accept and show our selected file
               Stack(
                 children: [
-                  const CircleAvatar(
-                    radius: 64,
-                    backgroundImage: NetworkImage(
-                        "https://images.pexels.com/photos/268533/pexels-photo-268533.jpeg?cs=srgb&dl=pexels-pixabay-268533.jpg&fm=jpg"),
-                  ),
+                  _profileImage != null
+                      ? CircleAvatar(
+                          radius: 64,
+                          backgroundImage: MemoryImage(_profileImage!),
+                        )
+                      : const CircleAvatar(
+                          radius: 64,
+                          backgroundImage: NetworkImage(
+                              "https://avatars.mds.yandex.net/i?id=84f3491b83f3b830f6e1fb1b19c74a75573eccb9-8495915-images-thumbs&n=13"),
+                        ),
                   Positioned(
                     bottom: -10,
                     left: 80,
                     child: IconButton(
-                      onPressed: () {},
+                      onPressed: selectImage,
                       icon: const Icon(Icons.add_a_photo),
                     ),
                   )
@@ -105,7 +167,7 @@ class _SignupScreenState extends State<SignupScreen> {
               mediumSpace,
               //Submit Button
               InkWell(
-                onTap: () {},
+                onTap: _signupUser,
                 child: Container(
                   padding: const EdgeInsets.all(16),
                   width: double.infinity,
@@ -116,7 +178,12 @@ class _SignupScreenState extends State<SignupScreen> {
                     ),
                     color: blueColor,
                   ),
-                  child: const Text("Sign Up"),
+                  child: _isLoading
+                      ? const Center(
+                          child: CircularProgressIndicator(
+                          color: primaryColor,
+                        ))
+                      : const Text("Sign Up"),
                 ),
               ),
 
@@ -138,7 +205,7 @@ class _SignupScreenState extends State<SignupScreen> {
                     child: Container(
                       padding: const EdgeInsets.symmetric(vertical: 12),
                       child: const Text(
-                        "Sign In.",
+                        "Sign In",
                         style: TextStyle(fontWeight: FontWeight.bold),
                       ),
                     ),
