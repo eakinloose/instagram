@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:instagram/responsive/mobile_screen_layout.dart';
+import 'package:instagram/responsive/responsive_layout.dart';
+import 'package:instagram/responsive/web_screen_layout.dart';
 
 import 'package:instagram/utils/colors.dart';
 import 'package:instagram/utils/dimensions.dart';
@@ -83,6 +86,15 @@ class _SignupScreenState extends State<SignupScreen> {
 
     if (response != "success") {
       showSnackBar(response, context);
+    } else {
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (ctx) => const ResponsiveLayout(
+            webLayout: WebScreenLayout(),
+            mobileLayout: MobileScreenLayout(),
+          ),
+        ),
+      );
     }
 
     print(response);
