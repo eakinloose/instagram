@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:instagram/resources/auth_methods.dart';
+import 'package:instagram/responsive/mobile_screen_layout.dart';
+import 'package:instagram/responsive/responsive_layout.dart';
+import 'package:instagram/responsive/web_screen_layout.dart';
 
 import 'package:instagram/utils/colors.dart';
 import 'package:instagram/utils/dimensions.dart';
+import 'package:instagram/utils/utils.dart';
 import 'package:instagram/widgets/text_field_input.dart';
 import 'package:instagram/screens/signup_screen.dart';
 
@@ -20,12 +25,56 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
+  bool _isLoading = false;
+
   //dispose controllers
   @override
   void dispose() {
     super.dispose();
     _emailController.dispose();
     _passwordController.dispose();
+  }
+
+  void _resetForm() {
+    _emailController.clear();
+    _passwordController.clear();
+  }
+
+  void _loginUser() async {
+    String? response;
+
+    if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    response = await Authmethods().loginUser(
+      email: _emailController.text,
+      password: _passwordController.text,
+    );
+
+    setState(() {
+      _isLoading = false;
+    });
+
+    if (response != "success") {
+      showSnackBar(response, context);
+    } else {
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (ctx) => const ResponsiveLayout(
+            webLayout: WebScreenLayout(),
+            mobileLayout: MobileScreenLayout(),
+          ),
+        ),
+      );
+    }
+
+    print(response);
+    _resetForm();
   }
 
   @override
@@ -66,7 +115,7 @@ class _LoginScreenState extends State<LoginScreen> {
               mediumSpace,
               //Submit Button
               InkWell(
-                onTap: () {},
+                onTap: _loginUser,
                 child: Container(
                   padding: const EdgeInsets.all(16),
                   width: double.infinity,
@@ -77,7 +126,12 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     color: blueColor,
                   ),
-                  child: const Text("Sign In"),
+                  child: _isLoading
+                      ? const Center(
+                          child: CircularProgressIndicator(
+                          color: primaryColor,
+                        ))
+                      : const Text("Sign In"),
                 ),
               ),
 

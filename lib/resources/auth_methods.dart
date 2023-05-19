@@ -3,6 +3,7 @@ import "dart:typed_data";
 // import "package:flutter/material.dart";
 import "package:firebase_auth/firebase_auth.dart";
 import "package:cloud_firestore/cloud_firestore.dart";
+import "package:instagram/models/user.dart";
 import "package:instagram/resources/storage_methods.dart";
 
 class Authmethods {
@@ -46,19 +47,21 @@ class Authmethods {
         String photoUrl = await StorageMethods()
             .uploadImageToStorage("profilePics", file, false);
 
+        Usermodel user = Usermodel(
+          email: email,
+          uid: userCredentials.user!.uid,
+          username: username,
+          bio: bio,
+          profileImage: photoUrl,
+          followers: [],
+          following: [],
+        );
+
         //add user to our database
         await _firestore
             .collection("users")
             .doc(userCredentials.user!.uid)
-            .set({
-          "email": email,
-          "uid": userCredentials.user!.uid,
-          "username": username,
-          "bio": bio,
-          "profileImage": photoUrl,
-          "followers": [],
-          "following": [],
-        });
+            .set(user.toJson());
 
         response = "success";
       }
@@ -68,6 +71,28 @@ class Authmethods {
       } else if (err.code == "weak-password") {
         response =
             "Password should be at least 6 characters long. Please try again";
+      }
+    } catch (err) {
+      response = err.toString();
+    }
+    return response!;
+  }
+
+  //LOGIN USER METHOD
+  Future<String> loginUser({
+    required String email,
+    required String password,
+  }) async {
+    String? response;
+
+    try {
+      await _auth.signInWithEmailAndPassword(email: email, password: password);
+      response = "success";
+    } on FirebaseAuthException catch (err) {
+      if (err.code == "user-not-found") {
+        response = "Email does not exist";
+      } else if (err.code == "wrong-password") {
+        response = "Invalid login credentials";
       }
     } catch (err) {
       response = err.toString();
