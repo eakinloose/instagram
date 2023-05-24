@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 
@@ -97,7 +99,6 @@ class _SignupScreenState extends State<SignupScreen> {
       );
     }
 
-    print(response);
     _resetForm();
   }
 
