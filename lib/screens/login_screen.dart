@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:instagram/resources/auth_methods.dart';
@@ -73,7 +75,6 @@ class _LoginScreenState extends State<LoginScreen> {
       );
     }
 
-    print(response);
     _resetForm();
   }
 
